@@ -1,0 +1,38 @@
+---
+title: "Presentación análisis de redes - Capítulo 9 Luke"
+output: html_notebook
+---
+
+
+# Analysis of Network Flow Data
+
+
+## 9.1 Introduction
+
+## 9.2 Modeling Network Flows: GravityModels
+
+### 9.2.1 Model Specification
+
+### 9.2.2 Inference for Gravity Models
+
+## 9.3 Predicting Network Flows: Traffic Matrix Estimation
+
+### 9.3.1 An Ill-Posed Inverse Problem
+
+### 9.3.2 The Tomogravity Method
+
+## 9.4 Additional Reading
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+

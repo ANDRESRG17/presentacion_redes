@@ -1,0 +1,389 @@
+---
+title: "Presentación análisis de redes - Capítulo 9 Luke"
+output: html_notebook
+
+---
+
+
+# Analysis of Network Flow Data
+
+
+## 9.1 Introduction
+
+<div style="text-align: justify; line-height: 2; font-family: 'Helvetica'; font-size: 14px;">
+
+Muchas redes sirven como conductos, ya sea literal o figurativamente, para flujos, en el sentido de que facilitan el movimiento de algo, como materiales, personas o información. Por ejemplo, las redes de transporte (p. ej., de autopistas, ferrocarriles y aerolíneas) soportan flujos de bienes y personas, las redes de comunicación permiten el flujo de datos, y las redes de relaciones comerciales entre naciones reflejan el flujo de capital. Nos referiremos genéricamente a aquello en lo que consiste un flujo como tráfico.  
+
+Los flujos están en el corazón de la forma y función de muchas redes, y comprender su comportamiento es a menudo un objetivo de interés primordial. Gran parte del trabajo cuantitativo en la literatura sobre flujos se ocupa de diversos tipos de problemas que involucran, por ejemplo, cuestiones de diseño de redes, aprovisionamiento y enrutamiento, y sus soluciones han involucrado principalmente herramientas en optimización y algoritmos. Las preguntas de naturaleza más estadística típicamente involucran el modelado y predicción de los volúmenes de flujo de la red, basados en datos relevantes, y es en estos temas en los que nos enfocaremos aquí.  
+
+Sea $G=(V,E)$ un grafo de red. Dado que los flujos tienen dirección, desde un origen hasta un destino, formalmente G será un digrafo. Siguiendo la convención en esta literatura, nos referiremos a las aristas (dirigidas) en este grafo como enlaces. El tráfico generalmente pasa por múltiples enlaces al moverse entre los vértices de origen y destino. Una cantidad de interés fundamental en el estudio de los flujos en redes es la llamada matriz origen-destino (OD), la cual denotaremos por $Z=[Z_{ij}]$, donde $Z_{ij}$ es el volumen total de tráfico que fluye desde un vértice de origen i a un vértice de destino j en un período de tiempo dado. A la matriz Z también se le refiere a veces como la matriz de tráfico.  
+
+En este capítulo examinaremos dos problemas estadísticos que surgen en el contexto de los flujos de red, distinguidos por si la matriz de tráfico Z es observada o debe ser predicha. Más específicamente, en la Sec. 9.2, consideramos el caso donde es posible observar toda la matriz de tráfico Z y es de interés modelar estas observaciones. El modelado podría ser de interés tanto para obtener una comprensión de cómo los factores potencialmente relevantes (p. ej., los costos) afectan los volúmenes de flujo, como para poder hacer predicciones de volúmenes de flujo futuros. Una clase de modelos comúnmente utilizados para tales propósitos son los llamados modelos de gravedad. En la Sec. 9.3, consideramos el problema de la estimación de la matriz de tráfico. Aquí se asume el caso de que es difícil o imposible observar las entradas de la matriz de tráfico $Z_{ij}$ directamente. Sin embargo, dada la información suficiente sobre los volúmenes de flujo marginales (es decir, en forma de volúmenes totales a través de los vértices o sobre los enlaces) y sobre el enrutamiento de los flujos entre orígenes y destinos, a menudo es posible generar predicciones precisas de Z utilizando métodos estadísticos.
+
+</div>
+
+## 9.2 Modeling Network Flows: GravityModels
+
+<div style="text-align: justify; line-height: 2; font-family: 'Helvetica'; font-size: 14px;">
+
+Los modelos de gravedad son una clase de modelos, desarrollados principalmente en las ciencias sociales, para describir los niveles agregados de interacción entre personas de diferentes poblaciones. Tradicionalmente se han utilizado sobre todo en áreas como la geografía, la economía y la sociología, por ejemplo, pero también se han aplicado en otras áreas de las ciencias, como la hidrología y el análisis del tráfico de redes informáticas. En este capítulo, nuestro interés en los modelos de gravedad se centra en su uso en contextos donde los flujos de tráfico relevantes se producen a través de una red.
+
+El término «modelo de gravedad» deriva del hecho de que, por analogía con la ley de gravitación universal de Newton, se supone que la interacción entre dos poblaciones varía en proporción directa a su tamaño e inversamente, con alguna medida de su separación. El concepto se remonta al menos al trabajo de Carey [25] en la década de 1850, pero posiblemente fue formulado en el sentido más estricto de la analogía por Stewart [136] en 1941, y desde entonces se ha desarrollado sustancialmente en los últimos 50 años. Aquí nos centramos en una versión general del modelo de gravedad y en los métodos de inferencia correspondientes.
+
+</div>
+
+
+### 9.2.1 Model Specification
+
+
+<div style="text-align: justify; line-height: 2; font-family: 'Helvetica'; font-size: 14px;">
+
+Sean $\mathcal{I}$ y $\mathcal{J}$ los conjuntos de orígenes $i$ y destinos $j$ en $V$, de cardinalidad $I=|\mathcal{I}|$ y $J=|\mathcal{J}|$, respectivamente. Además, $Z_{ij}$ denota —como se definió en la introducción— una medida del tráfico que fluye de $i \in \mathcal{I}$ a $j \in \mathcal{J}$ durante un período de tiempo dado. Supongamos que podemos observar la matriz $Z=[Z_{ij}]$ en su totalidad.Por ejemplo, el conjunto de datos calldata contiene información sobre el tráfico telefónico entre 32 distritos de telecomunicaciones en Austria a lo largo de un período durante el año 1991. Estos datos, descritos inicialmente por Fischer y Gopal [57], consisten en $32 \times 31 = 992$ mediciones de flujo $z_{ij}$, con $i \ne j = 1,...,32$, que capturan la intensidad de contacto durante el período estudiado. Además de las etiquetas básicas de la región de origen y destino para cada flujo, existe información sobre el producto regional bruto (GRP, por sus siglas en inglés) de cada región, el cual puede servir como un proxy (indicador aproximado) para la actividad económica y los ingresos, ambos factores relevantes para las llamadas telefónicas empresariales y privadas. Finalmente, hay dos conjuntos de mediciones que reflejan nociones de distancia entre regiones: uno basado en la distancia euclidiana y el otro basado en las vías de carretera.Dado que los datos originales en la variable Flow están en unidades de erlangs (es decir, el número de llamadas telefónicas, incluyendo faxes, multiplicado por la duración promedio de la llamada y dividido por la duración del período de medición), y considerando que los marcos de modelado de gravedad que describiremos asumen unidades de conteo, convertimos estos datos en casi-conteos (quasi-counts) con fines ilustrativos. (Nota: El texto original aquí hace referencia a bloques de código en R para transformar estos datos y visualizar el grafo de la red).Se ha descubierto que los modelos de gravedad son muy útiles para modelar este tipo de datos. El modelo de gravedad general especifica que los flujos de tráfico $Z_{ij}$ se expresen en forma de conteos, con distribuciones de Poisson independientes y funciones de media de la forma:
+
+\begin{equation*}
+    \mathbb{E}(Z_{ij}) = h_{O}(i) h_{D}(j) h_{S}(c_{ij}) \tag{9.1}
+\end{equation*}
+
+donde $h_O$, $h_D$ y $h_S$ son funciones positivas, respectivamente, del origen $i$, el destino $j$, y de un vector $c_{ij}$ compuesto por $K$ denominados atributos de separación. En una escala logarítmica, por lo tanto, tenemos:
+
+\begin{equation*}
+    \mathbb{E}(Z_{ij}) = \log h_{O}(i) + \log h_{D}(j) + \log h_{S}(c_{ij}) \tag{9.2}
+\end{equation*}
+
+Como veremos en un momento, las especificaciones comunes de las funciones $h_O$, $h_D$ y $h_S$ tienden a derivar en expresiones en el lado derecho de la ecuación (9.2) que son lineales respecto a algunos parámetros desconocidos. Esta forma log-lineal facilita, a su vez, el uso de métodos log-lineales para la inferencia estadística sobre los parámetros del modelo, como se discutirá más adelante.En general, los $K$ elementos de $c_{ij}$ se eligen para cuantificar alguna noción (o nociones) de separación atribuida al par origen-destino $(i, j)$, a menudo basándose en conceptos de "distancia" o "costo", ya sea de naturaleza literal o figurativa. Las funciones $h_O$ y $h_D$ a veces se denominan funciones de origen y destino, respectivamente, mientras que $h_S$ se llama comúnmente función de separación o de disuasión (deterrence). Frecuentemente, se restringe la función de separación para que sea no creciente respecto a los elementos de $c_{ij}$.Un ejemplo temprano y ahora clásico del modelo de gravedad es el de Stewart [136], propuesto en el marco de su teoría de la "gravitación demográfica", la cual especifica que:
+
+\begin{equation*}
+    \mathbb{E}(Z_{ij}) = \gamma \pi_{O,i} \pi_{D,j} d_{ij}^{-2} \tag{9.3}
+\end{equation*}
+
+donde $\pi_{O,i}$ y $\pi_{D,j}$ son medidas del tamaño de las poblaciones de origen y destino, respectivamente, para dos regiones geográficas $i$ y $j$; y $d_{ij}$ es una medida de la distancia entre los centros de estas regiones. Esta formulación es completamente análoga a la ley universal de Newton, llegando incluso a utilizar una "constante de gravitación demográfica" $\gamma$. Sin embargo, a diferencia de la ley de Newton, ni la evidencia empírica ni los argumentos teóricos sugieren que esta forma del modelo de gravedad sea estrictamente precisa en contextos prácticos, por lo que se suelen utilizar formas algo más flexibles.Por ejemplo, consideremos nuevamente los datos de llamadas de Austria. Los productos regionales brutos O.GRP y D.GRP se pueden usar en analogía con el tamaño de la población, y utilizamos la medida de distancia basada en carreteras DistRd. Es evidente, al examinar los diagramas de dispersión, que existe una relación razonablemente fuerte entre el volumen de llamadas, el GRP de origen, el GRP de destino y la distancia. Además, esta relación es bastante lineal y es creciente respecto al GRP de origen y destino, pero decreciente respecto a la distancia.Estas observaciones sugieren que un modelo de la siguiente forma podría ser razonable:
+
+\begin{equation*}
+    \mathbb{E}(Z_{ij}) = \gamma (\pi_{O,i})^{\alpha} (\pi_{D,j})^{\beta} (c_{ij})^{\theta} \tag{9.4}
+\end{equation*}
+
+donde $\pi_{O,i}$ es el GRP del origen $i$, $\pi_{D,j}$ es el GRP del destino $j$, y $c_{ij}$ es la distancia desde el origen $i$ al destino $j$. Es decir, parece sensato plantear un modelo log-lineal simple. Esta elección corresponde a las siguientes funciones de origen y destino:
+
+\begin{equation*}
+    h_{O}(i) = (\pi_{O,i})^{\alpha} \quad \text{y} \quad h_{D}(j) = (\pi_{D,j})^{\beta} \tag{9.5}
+\end{equation*}
+
+y la siguiente función de separación en el modelo de gravedad general:
+
+\begin{equation*}
+    h_{S}(c_{ij}) = (c_{ij})^{\theta} \tag{9.6}
+\end{equation*}
+
+Alternativamente, los valores $\{h_{O}(i)\}_{i\in \mathcal{I}}$ y $\{h_{D}(j)\}_{j\in \mathcal{J}}$ a menudo simplemente se tratan como una colección de $I+J$ parámetros desconocidos. Por ejemplo, al adoptar esta especificación para los datos de llamadas de Austria, manteniendo la misma elección para la función de separación, se obtiene una fórmula estadística más general.Para un tratamiento exhaustivo de variaciones adicionales sobre el modelo general de gravedad, incluyendo versiones que relajan la suposición de independencia entre los efectos de origen y destino (que está implícita en la forma de producto $h_{O}(i)\times h_{D}(j)$), se recomienda consultar el trabajo de Sen y Smith [130].
+
+</div>
+
+
+```{r}
+library(sand)
+
+data(calldata)
+names(calldata)
+```
+
+```{r}
+min.call <- min(calldata$Flow)
+calldata$FlowCnt <- round(5 * calldata$Flow / min.call)
+
+W <- xtabs(FlowCnt ~ Orig + Dest, calldata)
+g.cd <- graph_from_adjacency_matrix(W, weighted=TRUE)
+```
+
+
+```{r}
+in.flow <- strength(g.cd, mode="in")
+out.flow <- strength(g.cd, mode="out")
+
+vsize <- sqrt(in.flow + out.flow) / 100
+pie.vals <- lapply((1:vcount(g.cd)), function(i) c(in.flow[i], out.flow[i]))
+ewidth <- E(g.cd)$weight / 10^5
+
+V(g.cd)$name[25] <- "St. Polten"
+V(g.cd)$name[grepl("cklabruck", V(g.cd)$name, useBytes = TRUE)] <- "Vocklabruck"
+V(g.cd)$name[grepl("rgl", V(g.cd)$name, useBytes = TRUE)] <- "Worgl"
+
+```
+
+
+```{r fig.width=7, fig.height=7, out.width="70%", fig.align="center"}
+
+set.seed(147)
+mi_layout <- layout_with_fr(g.cd, weights = NA)
+
+par(mar=c(0, 0, 0, 0))
+mi_layout_estirado <- mi_layout * 2.5
+
+plot(g.cd, 
+     layout = mi_layout,
+     
+     xlim = c(-0.8, 0.8),
+     ylim = c(-1, 1),
+     
+     # --- Vértices ---
+     vertex.size = vsize * 0.9,
+     vertex.shape = "pie",
+     vertex.pie = pie.vals,
+     
+     # --- Etiquetas ---
+     vertex.label.family = "sans",
+     vertex.label.font = 3,               # <- 1 es normal, 2 es negrita (bold), 3 es cursiva, 4 es negrita-cursiva
+     vertex.label.cex = 0.8,
+     vertex.label.dist = 2,
+     vertex.label.color = "#45455E",
+     
+     # --- Aristas ---
+     edge.width = ewidth * 0.5,
+     edge.arrow.size = 0.4,
+     edge.curved = 0.7,
+     edge.color = rgb(0.5, 0.5, 0.5, alpha = 0.1)
+)
+
+```
+
+<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.1</b> Representación en red de los flujos de datos de la red de llamadas de Austria en calldata. El área de los vértices refleja el volumen total de flujo de entrada o salida de una región de telecomunicaciones, con la proporción relativa de flujos de entrada y salida indicada en blanco y azul, respectivamente. El grosor de los enlaces refleja el volumen de flujo desde el origen hasta el destino.</p>
+
+
+
+
+```{r fig.width=8, fig.height=8, out.width="75%", fig.align="center"}
+library(car)
+
+
+scatterplotMatrix( ~ lFlowCnt + lO.GRP + lD.GRP + lDistRd, 
+  data = calldata,
+  
+  # --- 1. CONFIGURACIÓN DE LOS PUNTOS ---
+  pch = 16,                 
+  col = rgb(0.2, 0.4, 0.6, alpha = 0.4),
+  cex = 0.8,
+  
+  # --- 2. LÍNEAS DE TENDENCIA ---
+  smooth = list(
+    col.smooth = "firebrick",
+    col.spread = "darkorange",
+    lwd.smooth = 2
+  ),
+
+  regLine = list(
+    col = "darkgreen",            
+    lwd = 2                       
+  ),
+  
+  # --- 3. LA DIAGONAL ---
+  diagonal = list(
+    method = "density",
+    col = "midnightblue",
+    lwd = 2
+  ),
+  
+  # --- 4. TEXTOS Y ETIQUETAS ---
+  var.labels = c("Log(Flujo)", "Log(PIB Origen)", "Log(PIB Destino)", "Log(Distancia)"), 
+  cex.labels = 1.2,
+  cex.axis = 1.2,
+  col.axis = "gray30"
+)
+
+```
+<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.2</b> Datos de llamadas de Austria. Se muestran diagramas de dispersión para el volumen de flujo de llamadas frente a cada uno de los siguientes factores: PIB regional de origen, PIB regional de destino y distancia, a lo largo de la fila superior; y para estas últimas tres variables entre sí, en las filas restantes. Todos los ejes están en escalas log-log. Superpuestas en cada diagrama de dispersión hay dos líneas continuas, con fines descriptivos, que muestran los ajustes basados en una regresión lineal simple (verde) y un suavizador no paramétrico (rojo continuo). Los gráficos de densidad para cada una de las cuatro variables se muestran a lo largo de la diagonal.</p>
+
+```{r}
+formula.s <- FlowCnt ~ lO.GRP + lD.GRP + lDistRd
+formula.g <- FlowCnt ~ Orig + Dest + lDistRd
+```
+
+
+```{r}
+
+```
+
+
+
+
+### 9.2.2 Inference for Gravity Models
+
+## 9.3 Predicting Network Flows: Traffic Matrix Estimation
+
+<div style="text-align: justify; line-height: 2; font-family: 'Helvetica'; font-size: 14px;">
+
+En muchos tipos de redes, es difícil —si no efectivamente imposible— medir de forma directa los volúmenes de flujo $Z_{ij}$ en una red. Sin embargo, el conocimiento de los volúmenes de flujo de tráfico es fundamental para una variedad de tareas orientadas a la red, como la gestión del tráfico, el aprovisionamiento de la red y la planificación para el crecimiento de la red. Afortunadamente, en muchos de los mismos contextos en los que la medición de los volúmenes de flujo $Z_{ij}$ entre orígenes y destinos es difícil, a menudo resulta relativamente fácil medir, en su lugar, los volúmenes de flujo en los enlaces de la red. Por ejemplo, en las redes de carreteras, se pueden colocar sensores en las entradas y salidas de las rampas. De manera similar, los enrutadores (routers) en una red de Internet vienen equipados con la capacidad de monitorear los datos en los enlaces incidentes. Las mediciones de los volúmenes de flujo en los enlaces de red, en conjunto con el conocimiento de la manera en que el tráfico fluye sobre estos enlaces (entre orígenes y destinos), pueden ser suficientes para permitirnos predecir con precisión los volúmenes origen-destino. Esto se conoce como el problema de estimación de la matriz de tráfico.
+
+Formalmente, sea $X_e$ el flujo total sobre un enlace dado $e \in E$, y sea $X=(X_e)_{e\in E}$. Los totales de los enlaces en $X$ pueden relacionarse con los volúmenes de flujo origen-destino en $Z$ mediante la expresión $X=BZ$, donde $Z$ ahora representa nuestra matriz de tráfico escrita como un vector, y $B$ es la llamada matriz de enrutamiento (routing matrix), la cual describe la manera en que el tráfico se mueve a lo largo de la red. El problema de la estimación de la matriz de tráfico consiste entonces en predecir los $Z_{ij}$ a partir de los conteos de enlace observados $X = (X_e)_{e\in E}$. Aquí nos centraremos en el caso en el que cada par origen-destino $(i, j)$ tiene una sola ruta posible entre ellos, en cuyo caso $B$ es una matriz binaria, donde la entrada en la fila correspondiente al enlace $e$ y la columna correspondiente al par $(i, j)$ está dada por:
+
+$$B_{e;ij} = \begin{cases} 
+1, & \text{si el enlace } e \text{ es atravesado al ir de } i \text{ a } j, \\ 
+0, & \text{en caso contrario.} 
+\end{cases} \tag{9.11}$$
+
+En cualquier caso de interés práctico, el problema de estimación de la matriz de tráfico estará altamente subdeterminado (under-constrained), en el sentido de que, en la práctica, lo que buscamos es invertir la matriz de enrutamiento $B$ en la relación $X \approx BZ$, pero típicamente $B$ tiene muchas menos filas (es decir, enlaces de la red) que columnas (es decir, pares origen-destino). Por lo tanto, normalmente se incorporan al problema varias fuentes adicionales de información, las cuales sirven efectivamente para restringir mejor el conjunto de soluciones posibles. Los métodos propuestos en esta área pueden categorizarse a grandes rasgos como estáticos o dinámicos, dependiendo de si su objetivo es estimar una matriz de tráfico para un solo período de tiempo o de forma sucesiva a lo largo de múltiples períodos. En esta sección nos conformaremos, luego de ilustrar brevemente la naturaleza del problema de estimación de tráfico, con presentar un único método estático —el llamado método tomogravity— el cual ha tenido bastante éxito en el contexto de Internet.
+
+
+</div>
+
+### 9.3.1 An Ill-Posed Inverse Problem
+
+
+<div style="text-align: justify; line-height: 2; font-family: 'Helvetica'; font-size: 14px;">
+
+Los diversos métodos estáticos propuestos para la estimación de matrices de tráfico son similares en el sentido de que todos implican, en última instancia, la optimización de alguna función objetivo, generalmente sujeta a ciertas restricciones. Sin embargo, pueden diferir ampliamente en la construcción y justificación de esta función objetivo y, en menor medida, en las restricciones impuestas.Un enfoque común es a través del uso de principios de mínimos cuadrados, los cuales pueden estar motivados por un modelo de medición gaussiano. Este modelo especifica que:
+
+$$X = B\mu + \epsilon \tag{9.12}$$
+donde $X=(X_e)_{e\in E}$ y $B$ se definen como antes, $\mu$ es un vector de dimensiones $IJ \times 1$ de los volúmenes de flujo esperados sobre todos los pares origen-destino, y $\epsilon$ es un vector de errores de dimensiones $N_e \times 1$. En principio, esta formulación sugiere que $\mu$ se estime mediante mínimos cuadrados ordinarios, es decir, minimizando:
+
+$$(x - B\mu)^T(x - B\mu) \tag{9.13}$$
+donde $x$ es el vector de volúmenes de flujo de enlace observados. Sin embargo, típicamente $N_e$ es mucho menor que $IJ$, por lo que el problema de mínimos cuadrados está subdeterminado y, en general, habrá un número infinito de posibles soluciones $\mu$. Es decir, este problema de estimación de la matriz de tráfico está mal planteado (ill-posed).
+
+Para ilustrarlo, utilizaremos el conjunto de datos bell.labs del paquete networkTomography. Estos datos corresponden a mediciones del volumen de flujo de tráfico en una pequeña red de computadoras en los Laboratorios Bell, Lucent Technologies, según lo reportado por Cao et al. [23]. La red consistía en cuatro dispositivos informáticos llamados fddi, local, switch y corp, conectados a un único enrutador. Una representación de esta red se muestra en la Fig. 9.4.
+
+Renombrando algunas de las variables en este conjunto de datos de manera consistente con la notación de este capítulo... vemos que tenemos a nuestra disposición no solo los volúmenes de flujo en los enlaces $X$ y la matriz de enrutamiento $B$, sino también los verdaderos volúmenes de flujo origen-destino $Z$, los cuales son útiles para propósitos de validación. Los volúmenes de flujo en $X$ y $Z$ están en unidades de bytes promedio por intervalo de cinco minutos. Los datos fueron recolectados continuamente durante un período de veinticuatro horas.
+
+Ignorando el único enrutador de esta red (el cual simplemente retransmite el tráfico que recibe en lugar de generar tráfico por sí mismo), hay un total de cuatro vértices en esta red con un total de ocho enlaces (es decir, un enlace de entrada y uno de salida por vértice). Por lo tanto, tenemos 8 series temporales de tráfico a nivel de enlace. Utilizando el paquete lattice, y trabajando desde la versión de marco de datos (data frame) de la red subyacente y las mediciones codificadas en bell.labs\$df, podemos producir una visualización útil que muestra estas ocho series temporales simultáneamente.
+
+Los gráficos resultantes se muestran en la Fig. 9.5. Es evidente, al observar algunas de las características más pronunciadas de las curvas individuales, cómo el tráfico proveniente de una fuente (p. ej., corp, alrededor de la hora 12) contribuye al tráfico hacia otro destino (p. ej., switch, al mismo tiempo). El objetivo de la estimación de la matriz de tráfico es extraer estas contribuciones individuales subyacentes a partir de las mediciones agregadas a nivel de enlace que se muestran en la figura.
+
+Ahora examinemos la matriz de enrutamiento para esta red. La matriz $B$ se nos presenta expresada en una forma de rango completo (full-rank), al haberse eliminado una fila de la matriz de enrutamiento global. Para propósitos de ilustración, aumentamos esta matriz volviendo a añadir esta fila faltante (produciendo una matriz de rango reducido, pero sin alterar el problema general).
+
+Esta matriz tiene dieciséis columnas, que corresponden a cada par origen-destino (incluyendo los cuatro casos en los que una máquina se envía tráfico a sí misma). Del mismo modo, tiene ocho filas, correspondientes a las cuatro máquinas fddi, local, switch y corp, respectivamente, primero como orígenes y luego como destinos. Es sencillo derivar esta matriz a partir de la topología de la red mostrada en la Fig. 9.4. Por ejemplo, la segunda columna corresponde al flujo de fddi a local, mientras que la séptima columna corresponde al flujo de local a switch.
+
+Claramente, para esta red, el problema de mínimos cuadrados de la ecuación (9.13) está subdeterminado, ya que se busca recuperar información sobre dieciséis flujos origen-destino a partir de únicamente ocho flujos a nivel de enlace.
+
+</div>
+
+
+```{r fig.width=7, fig.height=7, out.width="75%", fig.align="center"}
+library(networkTomography)
+
+data(bell.labs)
+
+g.bl <- graph_from_literal(fddi:switch:local:corp ++ Router)
+
+colores_nodos <- ifelse(V(g.bl)$name == "Router", "#F0EDFF", "#EBEBEB")
+mi_layout_bl <- layout_as_star(g.bl, center = "Router")
+
+par(mar=c(0, 0, 0, 0)) # Quitamos los márgenes blancos
+
+set.seed(42)
+plot(g.bl, 
+     layout = mi_layout_bl,
+     
+     xlim = c(-1, 1),  # Un poco de espacio para que no se corten los nombres
+     ylim = c(-1, 1),
+     
+     # --- Configuración de Nodos ---
+     vertex.size = 29,                 # Nodos grandes y visibles
+     vertex.color = colores_nodos,     # Aplicamos los colores que definimos arriba
+     vertex.frame.color = "#a8a8a8",    # Borde oscuro para darle contraste
+
+     
+     # --- Configuración de Texto ---
+     vertex.label.family = "sans",
+     vertex.label.font = 3,            # 2 = Negrita
+     vertex.label.cex = 1,           # Letra grande
+     vertex.label.color = "#5C5C5C",
+     
+     # --- Configuración de Enlaces ---
+     edge.width = 1.4,
+     edge.arrow.size = 1.2,            # Flechas medianas
+     edge.curved = 0,                # TRUCO 3: Curvatura vital para separar las flechas de ida y vuelta
+     edge.color = "#a8a8a8"
+)
+```
+<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.4</b> Representación esquemática de la pequeña red informática subyacente a los datos en bell.labs.</p>
+
+
+```{r fig.width=8, fig.height=8, out.width="75%", fig.align="center"}
+# Cargar librerías y datos
+library(lattice)
+library(networkTomography)
+data(bell.labs)
+
+B <- bell.labs$A
+Z <- bell.labs$X
+x <- bell.labs$Y
+
+# --- CORRECCIÓN: Se añadió "src switch" que faltaba ---
+traffic.in <- c("dst fddi", "dst switch", "dst local", "dst corp")
+traffic.out <- c("src fddi", "src switch", "src local", "src corp")
+
+my.df <- bell.labs$df
+
+# Extraer el tiempo (hora del día) de las etiquetas de texto
+my.df$t <- unlist(lapply(my.df$time, function(x) {
+  hrs <- as.numeric(substring(x, 11, 12))
+  mins <- as.numeric(substring(x, 14, 15))
+  t <- hrs + mins/60
+  return(t)
+}))
+
+my.df.in <- subset(my.df, nme %in% traffic.in)
+my.df.out <- subset(my.df, nme %in% traffic.out)
+
+# --- MEJORA VISUAL: Ajustes estéticos para la presentación ---
+# Esto hace que los títulos de cada panel (strips) tengan un fondo blanco o crema claro
+# en lugar del gris oscuro/rosado que viene por defecto, viéndose mucho más profesional.
+mi_tema <- list(strip.background = list(col = "#F5F5F5"))
+
+# Gráfico Superior (Entradas)
+p.in <- xyplot(value / 2^10 ~ t | nme, 
+               data = my.df.in, 
+               type = "l", 
+               col.line = "goldenrod",   # Color mostaza/dorado
+               lwd = 2,                  # Líneas gruesas para el proyector
+               layout = c(1, 4),         # 1 columna, 4 filas
+               xlab = "",                # Quitamos el label de X aquí para no repetirlo
+               ylab = "Kbytes/seg",
+               par.settings = mi_tema)
+
+# Gráfico Inferior (Salidas)
+p.out <- xyplot(value / 2^10 ~ t | nme, 
+                data = my.df.out, 
+                type = "l", 
+                col.line = "firebrick",  # Color rojo ladrillo
+                lwd = 2, 
+                layout = c(1, 4), 
+                xlab = "Hora del día",   # Solo dejamos el label de X en el de abajo
+                ylab = "Kbytes/seg",
+                par.settings = mi_tema)
+
+# --- APILAR LOS GRÁFICOS ---
+# El parámetro 'position' usa coordenadas c(xmin, ymin, xmax, ymax) de 0 a 1
+# p.in ocupa la mitad superior (y va de 0.5 a 1)
+print(p.in, position = c(0, 0.5, 1, 1), more = TRUE)
+# p.out ocupa la mitad inferior (y va de 0 a 0.5)
+print(p.out, position = c(0, 0, 1, 0.5))
+```
+
+<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.5</b> Series temporales que muestran el volumen de tráfico en los ocho enlaces de la red de Bell Labs. Arriba: Tráfico por destino. Abajo: Tráfico por origen.</p>
+
+
+```{r}
+B.full <- rbind(B, 2 - colSums(B))
+
+write.table(format(B.full), row.names=F, col.names=F, quote=F)
+```
+
+
+
+
+
+### 9.3.2 The Tomogravity Method
+
+## 9.4 Additional Reading
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+

@@ -9,15 +9,113 @@ output: html_notebook
 
 ## 9.1 Introduction
 
+
+Muchas redes sirven como conductos, ya sea literal o figurativamente, para flujos, en el sentido de que facilitan el movimiento de algo, como materiales, personas o información. Por ejemplo, las redes de transporte (p. ej., de autopistas, ferrocarriles y aerolíneas) soportan flujos de bienes y personas, las redes de comunicación permiten el flujo de datos, y las redes de relaciones comerciales entre naciones reflejan el flujo de capital. Nos referiremos genéricamente a aquello en lo que consiste un flujo como tráfico.  
+
+Los flujos están en el corazón de la forma y función de muchas redes, y comprender su comportamiento es a menudo un objetivo de interés primordial. Gran parte del trabajo cuantitativo en la literatura sobre flujos se ocupa de diversos tipos de problemas que involucran, por ejemplo, cuestiones de diseño de redes, aprovisionamiento y enrutamiento, y sus soluciones han involucrado principalmente herramientas en optimización y algoritmos. Las preguntas de naturaleza más estadística típicamente involucran el modelado y predicción de los volúmenes de flujo de la red, basados en datos relevantes, y es en estos temas en los que nos enfocaremos aquí.  
+
+Sea $G=(V,E)$ un grafo de red. Dado que los flujos tienen dirección, desde un origen hasta un destino, formalmente G será un digrafo. Siguiendo la convención en esta literatura, nos referiremos a las aristas (dirigidas) en este grafo como enlaces. El tráfico generalmente pasa por múltiples enlaces al moverse entre los vértices de origen y destino. Una cantidad de interés fundamental en el estudio de los flujos en redes es la llamada matriz origen-destino (OD), la cual denotaremos por $Z=[Z_{ij}]$, donde $Z_{ij}$ es el volumen total de tráfico que fluye desde un vértice de origen i a un vértice de destino j en un período de tiempo dado. A la matriz Z también se le refiere a veces como la matriz de tráfico.  
+
+En este capítulo examinaremos dos problemas estadísticos que surgen en el contexto de los flujos de red, distinguidos por si la matriz de tráfico Z es observada o debe ser predicha. Más específicamente, en la Sec. 9.2, consideramos el caso donde es posible observar toda la matriz de tráfico Z y es de interés modelar estas observaciones. El modelado podría ser de interés tanto para obtener una comprensión de cómo los factores potencialmente relevantes (p. ej., los costos) afectan los volúmenes de flujo, como para poder hacer predicciones de volúmenes de flujo futuros. Una clase de modelos comúnmente utilizados para tales propósitos son los llamados modelos de gravedad. En la Sec. 9.3, consideramos el problema de la estimación de la matriz de tráfico. Aquí se asume el caso de que es difícil o imposible observar las entradas de la matriz de tráfico $Z_{ij}$ directamente. Sin embargo, dada la información suficiente sobre los volúmenes de flujo marginales (es decir, en forma de volúmenes totales a través de los vértices o sobre los enlaces) y sobre el enrutamiento de los flujos entre orígenes y destinos, a menudo es posible generar predicciones precisas de Z utilizando métodos estadísticos.
+
 ## 9.2 Modeling Network Flows: GravityModels
 
 ### 9.2.1 Model Specification
+
+```{r}
+library(sand)
+
+data(calldata)
+
+names(calldata)
+
+
+
+```
+
+```{r}
+min.call <- min(calldata$Flow)
+
+calldata$FlowCnt <- round(5 * calldata$Flow / min.call)
+```
+
+
+```{r}
+W <- xtabs(FlowCnt ~ Orig + Dest, calldata)
+
+g.cd <- graph_from_adjacency_matrix(W, weighted=TRUE)
+```
+
+
+```{r}
+in.flow <- strength(g.cd, mode="in")
+
+out.flow <- strength(g.cd, mode="out")
+
+vsize <- sqrt(in.flow + out.flow) / 100
+
+pie.vals <- lapply((1:vcount(g.cd)), function(i) c(in.flow[i], out.flow[i]))
+
+ewidth <- E(g.cd)$weight / 10^5
+
+plot(g.cd, vertex.size=vsize, vertex.shape="pie", vertex.pie=pie.vals, edge.width=ewidth, edge.arrow.size=0.1)
+```
+
+
+```{r}
+calldata$lFlowCnt <- log(calldata$FlowCnt, 10)
+calldata$lO.GRP <- log(calldata$O.GRP, 10)
+calldata$lD.GRP <- log(calldata$D.GRP, 10)
+calldata$lDistRd <- log(calldata$DistRd, 10)
+
+library(car)
+scatterplotMatrix( ~ lFlowCnt + lO.GRP + lD.GRP +
+lDistRd, data=calldata)
+```
+
+
+```{r}
+formula.s <- FlowCnt ~ lO.GRP + lD.GRP + lDistRd
+```
+
+
+```{r}
+formula.g <- FlowCnt ~ Orig + Dest + lDistRd
+```
+
+
+
 
 ### 9.2.2 Inference for Gravity Models
 
 ## 9.3 Predicting Network Flows: Traffic Matrix Estimation
 
 ### 9.3.1 An Ill-Posed Inverse Problem
+
+```{r}
+library(mipfp)
+
+# Supongamos que tienes una matriz inicial (semilla) de tu red
+matriz_semilla <- array(1, dim=c(2, 2))
+
+# Y tienes los márgenes o flujos totales conocidos (in/out)
+flujos_entrada <- c(10, 20)
+flujos_salida <- c(15, 15)
+
+# Ejecutas el ajuste proporcional iterativo
+resultado_ipfp <- Ipfp(seed = matriz_semilla, 
+                       target.list = list(1, 2), 
+                       target.data = list(flujos_entrada, flujos_salida))
+
+# Aquí tienes tu matriz ajustada
+print(resultado_ipfp$x.hat)
+```
+
+
+```{r}
+g.bl <- graph.formula(fddi:switch:local:corp ++ Router)
+```
+
 
 ### 9.3.2 The Tomogravity Method
 

@@ -264,31 +264,31 @@ g.bl <- graph_from_literal(fddi:switch:local:corp ++ Router)
 colores_nodos <- ifelse(V(g.bl)$name == "Router", "#F0EDFF", "#EBEBEB")
 mi_layout_bl <- layout_as_star(g.bl, center = "Router")
 
-par(mar=c(0, 0, 0, 0)) # Quitamos los márgenes blancos
+par(mar=c(0, 0, 0, 0))
 
 set.seed(42)
-plot(g.bl, 
+plot(g.bl,
      layout = mi_layout_bl,
      
-     xlim = c(-1, 1),  # Un poco de espacio para que no se corten los nombres
+     xlim = c(-1, 1),
      ylim = c(-1, 1),
      
      # --- Configuración de Nodos ---
-     vertex.size = 29,                 # Nodos grandes y visibles
-     vertex.color = colores_nodos,     # Aplicamos los colores que definimos arriba
-     vertex.frame.color = "#a8a8a8",    # Borde oscuro para darle contraste
+     vertex.size = 29,
+     vertex.color = colores_nodos,
+     vertex.frame.color = "#a8a8a8",
 
      
      # --- Configuración de Texto ---
      vertex.label.family = "sans",
-     vertex.label.font = 3,            # 2 = Negrita
-     vertex.label.cex = 1,           # Letra grande
+     vertex.label.font = 3,
+     vertex.label.cex = 1,
      vertex.label.color = "#5C5C5C",
      
      # --- Configuración de Enlaces ---
      edge.width = 1.4,
-     edge.arrow.size = 1.2,            # Flechas medianas
-     edge.curved = 0,                # TRUCO 3: Curvatura vital para separar las flechas de ida y vuelta
+     edge.arrow.size = 1.2,
+     edge.curved = 0,
      edge.color = "#a8a8a8"
 )
 ```
@@ -305,13 +305,13 @@ B <- bell.labs$A
 Z <- bell.labs$X
 x <- bell.labs$Y
 
-# --- CORRECCIÓN: Se añadió "src switch" que faltaba ---
+
 traffic.in <- c("dst fddi", "dst switch", "dst local", "dst corp")
 traffic.out <- c("src fddi", "src switch", "src local", "src corp")
 
 my.df <- bell.labs$df
 
-# Extraer el tiempo (hora del día) de las etiquetas de texto
+
 my.df$t <- unlist(lapply(my.df$time, function(x) {
   hrs <- as.numeric(substring(x, 11, 12))
   mins <- as.numeric(substring(x, 14, 15))
@@ -322,38 +322,33 @@ my.df$t <- unlist(lapply(my.df$time, function(x) {
 my.df.in <- subset(my.df, nme %in% traffic.in)
 my.df.out <- subset(my.df, nme %in% traffic.out)
 
-# --- MEJORA VISUAL: Ajustes estéticos para la presentación ---
-# Esto hace que los títulos de cada panel (strips) tengan un fondo blanco o crema claro
-# en lugar del gris oscuro/rosado que viene por defecto, viéndose mucho más profesional.
+
 mi_tema <- list(strip.background = list(col = "#F5F5F5"))
 
 # Gráfico Superior (Entradas)
 p.in <- xyplot(value / 2^10 ~ t | nme, 
                data = my.df.in, 
                type = "l", 
-               col.line = "goldenrod",   # Color mostaza/dorado
-               lwd = 2,                  # Líneas gruesas para el proyector
-               layout = c(1, 4),         # 1 columna, 4 filas
-               xlab = "",                # Quitamos el label de X aquí para no repetirlo
+               col.line = "goldenrod",
+               lwd = 2,
+               layout = c(1, 4),
+               xlab = "",
                ylab = "Kbytes/seg",
                par.settings = mi_tema)
 
 # Gráfico Inferior (Salidas)
-p.out <- xyplot(value / 2^10 ~ t | nme, 
-                data = my.df.out, 
-                type = "l", 
-                col.line = "firebrick",  # Color rojo ladrillo
-                lwd = 2, 
-                layout = c(1, 4), 
-                xlab = "Hora del día",   # Solo dejamos el label de X en el de abajo
+p.out <- xyplot(value / 2^10 ~ t | nme,
+                data = my.df.out,
+                type = "l",
+                col.line = "firebrick",
+                lwd = 2,
+                layout = c(1, 4),
+                xlab = "Hora del día",
                 ylab = "Kbytes/seg",
                 par.settings = mi_tema)
 
 # --- APILAR LOS GRÁFICOS ---
-# El parámetro 'position' usa coordenadas c(xmin, ymin, xmax, ymax) de 0 a 1
-# p.in ocupa la mitad superior (y va de 0.5 a 1)
 print(p.in, position = c(0, 0.5, 1, 1), more = TRUE)
-# p.out ocupa la mitad inferior (y va de 0 a 0.5)
 print(p.out, position = c(0, 0, 1, 0.5))
 ```
 

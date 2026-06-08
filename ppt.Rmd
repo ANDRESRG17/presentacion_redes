@@ -14,11 +14,22 @@ output: html_notebook
 
 Muchas redes sirven como conductos, ya sea literal o figurativamente, para flujos, en el sentido de que facilitan el movimiento de algo, como materiales, personas o información. Por ejemplo, las redes de transporte (p. ej., de autopistas, ferrocarriles y aerolíneas) soportan flujos de bienes y personas, las redes de comunicación permiten el flujo de datos, y las redes de relaciones comerciales entre naciones reflejan el flujo de capital. Nos referiremos genéricamente a aquello en lo que consiste un flujo como tráfico.  
 
+![](C:/Users/USER/OneDrive/Documentos/002. Estudio/Maestría estadística/Análisis de redes/PPT/image_001.png)
+<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Ilustración. No. 01</b> Representación esquemática de las redes de tráfico: Redes de transporte, flujo de bienes y personas; redes de comunicación, flujo de datos e información; redes comerciales, flujo de capital y comercio global - Imagen generada con la IA Gemini de Google (2026).</p>
+
 Los flujos están en el corazón de la forma y función de muchas redes, y comprender su comportamiento es a menudo un objetivo de interés primordial. Gran parte del trabajo cuantitativo en la literatura sobre flujos se ocupa de diversos tipos de problemas que involucran, por ejemplo, cuestiones de diseño de redes, aprovisionamiento y enrutamiento, y sus soluciones han involucrado principalmente herramientas en optimización y algoritmos. Las preguntas de naturaleza más estadística típicamente involucran el modelado y predicción de los volúmenes de flujo de la red, basados en datos relevantes, y es en estos temas en los que nos enfocaremos aquí.  
 
 Sea $G=(V,E)$ un grafo de red. Dado que los flujos tienen dirección, desde un origen hasta un destino, formalmente G será un digrafo. Siguiendo la convención en esta literatura, nos referiremos a las aristas (dirigidas) en este grafo como enlaces. El tráfico generalmente pasa por múltiples enlaces al moverse entre los vértices de origen y destino. Una cantidad de interés fundamental en el estudio de los flujos en redes es la llamada matriz origen-destino (OD), la cual denotaremos por $Z=[Z_{ij}]$, donde $Z_{ij}$ es el volumen total de tráfico que fluye desde un vértice de origen i a un vértice de destino j en un período de tiempo dado. A la matriz Z también se le refiere a veces como la matriz de tráfico.  
 
+![](C:/Users/USER/OneDrive/Documentos/002. Estudio/Maestría estadística/Análisis de redes/PPT/image_002.png)
+<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Ilustración. No. 02</b> Representación esquemática de una red de transporte, resaltando el flujo del nodo 1 al nodo 7 (izquierda). Y, la respectiva matriz Origen - Destino (O_D) (Derecha) - Elaboración propia.</p>
+
 En este capítulo examinaremos dos problemas estadísticos que surgen en el contexto de los flujos de red, distinguidos por si la matriz de tráfico Z es observada o debe ser predicha. Más específicamente, en la Sec. 9.2, consideramos el caso donde es posible observar toda la matriz de tráfico Z y es de interés modelar estas observaciones. El modelado podría ser de interés tanto para obtener una comprensión de cómo los factores potencialmente relevantes (p. ej., los costos) afectan los volúmenes de flujo, como para poder hacer predicciones de volúmenes de flujo futuros. Una clase de modelos comúnmente utilizados para tales propósitos son los llamados modelos de gravedad. En la Sec. 9.3, consideramos el problema de la estimación de la matriz de tráfico. Aquí se asume el caso de que es difícil o imposible observar las entradas de la matriz de tráfico $Z_{ij}$ directamente. Sin embargo, dada la información suficiente sobre los volúmenes de flujo marginales (es decir, en forma de volúmenes totales a través de los vértices o sobre los enlaces) y sobre el enrutamiento de los flujos entre orígenes y destinos, a menudo es posible generar predicciones precisas de Z utilizando métodos estadísticos.
+
+
+![](C:/Users/USER/OneDrive/Documentos/002. Estudio/Maestría estadística/Análisis de redes/PPT/image_003.png)
+<p style="text-align: center; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Ilustración. No. 03</b> Representación esquemática del contenido del capítulo 9 - Elaboración propia.</p>
+
 
 </div>
 
@@ -38,7 +49,13 @@ El término «modelo de gravedad» deriva del hecho de que, por analogía con la
 
 <div style="text-align: justify; line-height: 2; font-family: 'Helvetica'; font-size: 14px;">
 
-Sean $\mathcal{I}$ y $\mathcal{J}$ los conjuntos de orígenes $i$ y destinos $j$ en $V$, de cardinalidad $I=|\mathcal{I}|$ y $J=|\mathcal{J}|$, respectivamente. Además, $Z_{ij}$ denota —como se definió en la introducción— una medida del tráfico que fluye de $i \in \mathcal{I}$ a $j \in \mathcal{J}$ durante un período de tiempo dado. Supongamos que podemos observar la matriz $Z=[Z_{ij}]$ en su totalidad.Por ejemplo, el conjunto de datos calldata contiene información sobre el tráfico telefónico entre 32 distritos de telecomunicaciones en Austria a lo largo de un período durante el año 1991. Estos datos, descritos inicialmente por Fischer y Gopal [57], consisten en $32 \times 31 = 992$ mediciones de flujo $z_{ij}$, con $i \ne j = 1,...,32$, que capturan la intensidad de contacto durante el período estudiado. Además de las etiquetas básicas de la región de origen y destino para cada flujo, existe información sobre el producto regional bruto (GRP, por sus siglas en inglés) de cada región, el cual puede servir como un proxy (indicador aproximado) para la actividad económica y los ingresos, ambos factores relevantes para las llamadas telefónicas empresariales y privadas. Finalmente, hay dos conjuntos de mediciones que reflejan nociones de distancia entre regiones: uno basado en la distancia euclidiana y el otro basado en las vías de carretera.Dado que los datos originales en la variable Flow están en unidades de erlangs (es decir, el número de llamadas telefónicas, incluyendo faxes, multiplicado por la duración promedio de la llamada y dividido por la duración del período de medición), y considerando que los marcos de modelado de gravedad que describiremos asumen unidades de conteo, convertimos estos datos en casi-conteos (quasi-counts) con fines ilustrativos. (Nota: El texto original aquí hace referencia a bloques de código en R para transformar estos datos y visualizar el grafo de la red).Se ha descubierto que los modelos de gravedad son muy útiles para modelar este tipo de datos. El modelo de gravedad general especifica que los flujos de tráfico $Z_{ij}$ se expresen en forma de conteos, con distribuciones de Poisson independientes y funciones de media de la forma:
+Sean $\mathcal{I}$ y $\mathcal{J}$ los conjuntos de orígenes $i$ y destinos $j$ en $V$, de cardinalidad $I=|\mathcal{I}|$ y $J=|\mathcal{J}|$, respectivamente. Además, $Z_{ij}$ denota —como se definió en la introducción— una medida del tráfico que fluye de $i \in \mathcal{I}$ a $j \in \mathcal{J}$ durante un período de tiempo dado. Supongamos que podemos observar la matriz $Z=[Z_{ij}]$ en su totalidad.
+
+Por ejemplo, el conjunto de datos calldata contiene información sobre el tráfico telefónico entre 32 distritos de telecomunicaciones en Austria a lo largo de un período durante el año 1991. Estos datos, descritos inicialmente por Fischer y Gopal [57], consisten en $32 \times 31 = 992$ mediciones de flujo $z_{ij}$, con $i \ne j = 1,...,32$, que capturan la intensidad de contacto durante el período estudiado. Además de las etiquetas básicas de la región de origen y destino para cada flujo, existe información sobre el producto regional bruto (GRP, por sus siglas en inglés) de cada región, el cual puede servir como un proxy (indicador aproximado) para la actividad económica y los ingresos, ambos factores relevantes para las llamadas telefónicas empresariales y privadas. Finalmente, hay dos conjuntos de mediciones que reflejan nociones de distancia entre regiones: uno basado en la distancia euclidiana y el otro basado en las vías de carretera.
+
+Dado que los datos originales en la variable Flow están en unidades de erlangs (es decir, el número de llamadas telefónicas, incluyendo faxes, multiplicado por la duración promedio de la llamada y dividido por la duración del período de medición), y considerando que los marcos de modelado de gravedad que describiremos asumen unidades de conteo, convertimos estos datos en casi-conteos (quasi-counts) con fines ilustrativos.
+
+Se ha descubierto que los modelos de gravedad son muy útiles para modelar este tipo de datos. El modelo de gravedad general especifica que los flujos de tráfico $Z_{ij}$ se expresen en forma de conteos, con distribuciones de Poisson independientes y funciones de media de la forma:
 
 \begin{equation*}
     \mathbb{E}(Z_{ij}) = h_{O}(i) h_{D}(j) h_{S}(c_{ij}) \tag{9.1}
@@ -47,22 +64,36 @@ Sean $\mathcal{I}$ y $\mathcal{J}$ los conjuntos de orígenes $i$ y destinos $j$
 donde $h_O$, $h_D$ y $h_S$ son funciones positivas, respectivamente, del origen $i$, el destino $j$, y de un vector $c_{ij}$ compuesto por $K$ denominados atributos de separación. En una escala logarítmica, por lo tanto, tenemos:
 
 \begin{equation*}
-    \mathbb{E}(Z_{ij}) = \log h_{O}(i) + \log h_{D}(j) + \log h_{S}(c_{ij}) \tag{9.2}
+    \mathbb{\log E}(Z_{ij}) = \log h_{O}(i) + \log h_{D}(j) + \log h_{S}(c_{ij}) \tag{9.2}
 \end{equation*}
 
-Como veremos en un momento, las especificaciones comunes de las funciones $h_O$, $h_D$ y $h_S$ tienden a derivar en expresiones en el lado derecho de la ecuación (9.2) que son lineales respecto a algunos parámetros desconocidos. Esta forma log-lineal facilita, a su vez, el uso de métodos log-lineales para la inferencia estadística sobre los parámetros del modelo, como se discutirá más adelante.En general, los $K$ elementos de $c_{ij}$ se eligen para cuantificar alguna noción (o nociones) de separación atribuida al par origen-destino $(i, j)$, a menudo basándose en conceptos de "distancia" o "costo", ya sea de naturaleza literal o figurativa. Las funciones $h_O$ y $h_D$ a veces se denominan funciones de origen y destino, respectivamente, mientras que $h_S$ se llama comúnmente función de separación o de disuasión (deterrence). Frecuentemente, se restringe la función de separación para que sea no creciente respecto a los elementos de $c_{ij}$.Un ejemplo temprano y ahora clásico del modelo de gravedad es el de Stewart [136], propuesto en el marco de su teoría de la "gravitación demográfica", la cual especifica que:
+Como veremos en un momento, las especificaciones comunes de las funciones $h_O$, $h_D$ y $h_S$ tienden a derivar en expresiones en el lado derecho de la ecuación (9.2) que son lineales respecto a algunos parámetros desconocidos. Esta forma log-lineal facilita, a su vez, el uso de métodos log-lineales para la inferencia estadística sobre los parámetros del modelo, como se discutirá más adelante.
+
+En general, los $K$ elementos de $c_{ij}$ se eligen para cuantificar alguna noción (o nociones) de separación atribuida al par origen-destino $(i, j)$, a menudo basándose en conceptos de "distancia" o "costo", ya sea de naturaleza literal o figurativa. Las funciones $h_O$ y $h_D$ a veces se denominan funciones de origen y destino, respectivamente, mientras que $h_S$ se llama comúnmente función de separación o de disuasión (deterrence). Frecuentemente, se restringe la función de separación para que sea no creciente respecto a los elementos de $c_{ij}$.
+
+Un ejemplo temprano y ahora clásico del modelo de gravedad es el de Stewart [136], propuesto en el marco de su teoría de la "gravitación demográfica", la cual especifica que:
 
 \begin{equation*}
     \mathbb{E}(Z_{ij}) = \gamma \pi_{O,i} \pi_{D,j} d_{ij}^{-2} \tag{9.3}
 \end{equation*}
 
-donde $\pi_{O,i}$ y $\pi_{D,j}$ son medidas del tamaño de las poblaciones de origen y destino, respectivamente, para dos regiones geográficas $i$ y $j$; y $d_{ij}$ es una medida de la distancia entre los centros de estas regiones. Esta formulación es completamente análoga a la ley universal de Newton, llegando incluso a utilizar una "constante de gravitación demográfica" $\gamma$. Sin embargo, a diferencia de la ley de Newton, ni la evidencia empírica ni los argumentos teóricos sugieren que esta forma del modelo de gravedad sea estrictamente precisa en contextos prácticos, por lo que se suelen utilizar formas algo más flexibles.Por ejemplo, consideremos nuevamente los datos de llamadas de Austria. Los productos regionales brutos O.GRP y D.GRP se pueden usar en analogía con el tamaño de la población, y utilizamos la medida de distancia basada en carreteras DistRd. Es evidente, al examinar los diagramas de dispersión, que existe una relación razonablemente fuerte entre el volumen de llamadas, el GRP de origen, el GRP de destino y la distancia. Además, esta relación es bastante lineal y es creciente respecto al GRP de origen y destino, pero decreciente respecto a la distancia.Estas observaciones sugieren que un modelo de la siguiente forma podría ser razonable:
+donde $\pi_{O,i}$ y $\pi_{D,j}$ son medidas del tamaño de las poblaciones de origen y destino, respectivamente, para dos regiones geográficas $i$ y $j$; y $d_{ij}$ es una medida de la distancia entre los centros de estas regiones. Esta formulación es completamente análoga a la ley universal de Newton, llegando incluso a utilizar una "constante de gravitación demográfica" $\gamma$. Sin embargo, a diferencia de la ley de Newton, ni la evidencia empírica ni los argumentos teóricos sugieren que esta forma del modelo de gravedad sea estrictamente precisa en contextos prácticos, por lo que se suelen utilizar formas algo más flexibles.
+
+Por ejemplo, consideremos nuevamente los datos de llamadas de Austria. Los productos regionales brutos O.GRP y D.GRP se pueden usar en analogía con el tamaño de la población, y utilizamos la medida de distancia basada en carreteras DistRd. 
+
+Es evidente, al examinar los diagramas de dispersión, que existe una relación razonablemente fuerte entre el volumen de llamadas, el GRP de origen, el GRP de destino y la distancia. Además, esta relación es bastante lineal y es creciente respecto al GRP de origen y destino, pero decreciente respecto a la distancia. Estas observaciones sugieren que un modelo de la siguiente forma podría ser razonable:
 
 \begin{equation*}
     \mathbb{E}(Z_{ij}) = \gamma (\pi_{O,i})^{\alpha} (\pi_{D,j})^{\beta} (c_{ij})^{\theta} \tag{9.4}
 \end{equation*}
 
-donde $\pi_{O,i}$ es el GRP del origen $i$, $\pi_{D,j}$ es el GRP del destino $j$, y $c_{ij}$ es la distancia desde el origen $i$ al destino $j$. Es decir, parece sensato plantear un modelo log-lineal simple. Esta elección corresponde a las siguientes funciones de origen y destino:
+donde $\pi_{O,i}$ es el GRP del origen $i$, $\pi_{D,j}$ es el GRP del destino $j$, y $c_{ij}$ es la distancia desde el origen $i$ al destino $j$. Es decir, parece sensato plantear un modelo log-lineal simple. 
+
+```{r}
+formula.s <- FlowCnt ~ lO.GRP + lD.GRP + lDistRd
+```
+
+Esta elección corresponde a las siguientes funciones de origen y destino:
 
 \begin{equation*}
     h_{O}(i) = (\pi_{O,i})^{\alpha} \quad \text{y} \quad h_{D}(j) = (\pi_{D,j})^{\beta} \tag{9.5}
@@ -74,134 +105,240 @@ y la siguiente función de separación en el modelo de gravedad general:
     h_{S}(c_{ij}) = (c_{ij})^{\theta} \tag{9.6}
 \end{equation*}
 
-Alternativamente, los valores $\{h_{O}(i)\}_{i\in \mathcal{I}}$ y $\{h_{D}(j)\}_{j\in \mathcal{J}}$ a menudo simplemente se tratan como una colección de $I+J$ parámetros desconocidos. Por ejemplo, al adoptar esta especificación para los datos de llamadas de Austria, manteniendo la misma elección para la función de separación, se obtiene una fórmula estadística más general.Para un tratamiento exhaustivo de variaciones adicionales sobre el modelo general de gravedad, incluyendo versiones que relajan la suposición de independencia entre los efectos de origen y destino (que está implícita en la forma de producto $h_{O}(i)\times h_{D}(j)$), se recomienda consultar el trabajo de Sen y Smith [130].
+Alternativamente, los valores $\{h_{O}(i)\}_{i\in \mathcal{I}}$ y $\{h_{D}(j)\}_{j\in \mathcal{J}}$ a menudo simplemente se tratan como una colección de $I+J$ parámetros desconocidos. Por ejemplo, al adoptar esta especificación para los datos de llamadas de Austria, manteniendo la misma elección para la función de separación, se obtiene una fórmula estadística más general.
+
+```{r}
+formula.g <- FlowCnt ~ Orig + Dest + lDistRd
+```
+
+Para un tratamiento exhaustivo de variaciones adicionales sobre el modelo general de gravedad, incluyendo versiones que relajan la suposición de independencia entre los efectos de origen y destino (que está implícita en la forma de producto $h_{O}(i)\times h_{D}(j)$), se recomienda consultar el trabajo de Sen y Smith [130].
 
 </div>
 
 
 ```{r}
+# Carga la librería 'sand', que contiene funciones y conjuntos de datos 
+# del libro "Statistical Analysis of Network Data with R".
 library(sand)
 
+# Carga el conjunto de datos 'calldata' en el entorno de R. 
+# Contiene registros de llamadas telefónicas con columnas de Origen, Destino y Flujo.
 data(calldata)
+
+# Muestra los nombres de las columnas del data frame 'calldata' para verificar su estructura.
 names(calldata)
 ```
 
 ```{r}
+# Encuentra el valor mínimo de la columna 'Flow' (Flujo) y lo guarda en 'min.call'.
 min.call <- min(calldata$Flow)
+
+# Crea una nueva variable 'FlowCnt'. Escala el flujo original dividiéndolo 
+# por el mínimo, lo multiplica por 5 y lo redondea al entero más cercano. 
+# Esto transforma una variable continua en conteos discretos y manejables como pesos.
 calldata$FlowCnt <- round(5 * calldata$Flow / min.call)
 
+# Usa la función xtabs para crear una tabla de contingencia (matriz cruzada).
+# Suma los valores de 'FlowCnt' agrupados por cada par de 'Orig' (Origen) y 'Dest' (Destino).
+# El resultado 'W' es esencialmente la matriz de adyacencia u Origen-Destino.
 W <- xtabs(FlowCnt ~ Orig + Dest, calldata)
+
+# Convierte la matriz O-D 'W' en un objeto de grafo de igraph. 
+# Al indicar weighted=TRUE, los valores de las celdas se asignan como el atributo 
+# de peso ("weight") de las aristas (edges).
 g.cd <- graph_from_adjacency_matrix(W, weighted=TRUE)
 ```
 
 
 ```{r}
+# Calcula el "in-degree" ponderado (fuerza de entrada) para cada nodo.
+# Suma el peso de todas las aristas que entran a un nodo (flujo entrante).
 in.flow <- strength(g.cd, mode="in")
+
+# Calcula el "out-degree" ponderado (fuerza de salida) para cada nodo.
+# Suma el peso de todas las aristas que salen de un nodo (flujo saliente).
 out.flow <- strength(g.cd, mode="out")
 
+# Define el tamaño de los vértices (nodos) para el gráfico. 
+# Usa la raíz cuadrada de la suma de flujos (entrada + salida) para suavizar 
+# las diferencias extremas, y divide entre 100 para escalar el tamaño visualmente.
 vsize <- sqrt(in.flow + out.flow) / 100
+
+# Crea una lista donde cada elemento corresponde a un nodo. 
+# Cada elemento contiene un vector con dos valores: [flujo_entrada, flujo_salida].
+# Esto se usa para dibujar nodos con forma de gráfico de pastel (pie charts),
+# mostrando la proporción de entrada vs. salida en cada nodo.
 pie.vals <- lapply((1:vcount(g.cd)), function(i) c(in.flow[i], out.flow[i]))
+
+# Define el grosor de las aristas (líneas) dividiendo el peso de cada una entre 100,000.
+# Evita que aristas con flujos muy altos tapen toda la visualización.
 ewidth <- E(g.cd)$weight / 10^5
 
-V(g.cd)$name[25] <- "St. Polten"
-V(g.cd)$name[grepl("cklabruck", V(g.cd)$name, useBytes = TRUE)] <- "Vocklabruck"
-V(g.cd)$name[grepl("rgl", V(g.cd)$name, useBytes = TRUE)] <- "Worgl"
+# Las siguientes tres líneas son limpieza de datos (Data Cleaning).
+# Corrigen problemas de codificación de caracteres (UTF-8/ASCII) en los nombres 
+# de ciertas ciudades austríacas para que se lean correctamente.
 
+# Renombra explícitamente el nodo número 25 a "St. Polten".
+V(g.cd)$name[25] <- "St. Polten"
+
+# Busca cualquier nombre de nodo que contenga "cklabruck" (usando coincidencia de bytes) 
+# y lo reemplaza por "Vocklabruck" (corrigiendo Vöcklabruck).
+V(g.cd)$name[grepl("cklabruck", V(g.cd)$name, useBytes = TRUE)] <- "Vocklabruck"
+
+# Busca cualquier nombre de nodo que contenga "rgl" y lo reemplaza por "Worgl" (corrigiendo Wörgl).
+V(g.cd)$name[grepl("rgl", V(g.cd)$name, useBytes = TRUE)] <- "Worgl"
 ```
 
 
 ```{r fig.width=7, fig.height=7, out.width="70%", fig.align="center"}
 
+# Fija una "semilla" para el generador de números aleatorios. 
+# Como los algoritmos de layout de grafos suelen tener un componente estocástico 
+# (aleatorio), esto garantiza que cada vez que se corra el código, el grafo 
+# se dibuje exactamente en la misma posición.
 set.seed(147)
+
+# Calcula las coordenadas espaciales de los nodos usando el algoritmo de 
+# Fruchterman-Reingold (FR). Este es un algoritmo "dirigido por fuerzas" donde 
+# los nodos se repelen (como imanes) y las aristas los atraen (como resortes).
+# Al usar 'weights = NA', se le dice al algoritmo que ignore el peso de las aristas 
+# para calcular las posiciones, evitando que los nodos con flujos altísimos colapsen unos sobre otros.
 mi_layout <- layout_with_fr(g.cd, weights = NA)
 
+# Modifica los parámetros gráficos de R (par). 
+# 'mar' define los márgenes (abajo, izquierda, arriba, derecha). 
+# Ponerlos todos en 0 maximiza el espacio disponible en la ventana de ploteo.
 par(mar=c(0, 0, 0, 0))
-mi_layout_estirado <- mi_layout * 2.5
 
 plot(g.cd, 
+     # Asigna las coordenadas calculadas previamente (Fruchterman-Reingold).
      layout = mi_layout,
      
+     # Limita los ejes X e Y. Esto hace "zoom in" o "zoom out". 
+     # Ayuda a centrar la red dentro del espacio de ploteo.
      xlim = c(-0.8, 0.8),
      ylim = c(-1, 1),
      
-     # --- Vértices ---
+     # --- Vértices (Nodos) ---
+     # Asigna el tamaño de los nodos calculado en el bloque anterior ('vsize'),
+     # pero lo reduce un 10% (multiplicando por 0.9) para afinar la estética.
      vertex.size = vsize * 0.9,
+     # Cambia la forma del nodo a un gráfico de pastel (pie chart).
      vertex.shape = "pie",
+     # Le pasa la lista 'pie.vals' (flujo de entrada vs salida) para rellenar los pasteles.
      vertex.pie = pie.vals,
      
-     # --- Etiquetas ---
+     # --- Etiquetas de los Vértices ---
+     # Usa una fuente sin serifas (como Arial o Helvetica).
      vertex.label.family = "sans",
-     vertex.label.font = 3,               # <- 1 es normal, 2 es negrita (bold), 3 es cursiva, 4 es negrita-cursiva
+     # Aplica estilo cursiva a las etiquetas (3 = italic).
+     vertex.label.font = 3,               
+     # Ajusta el tamaño de la letra (Character EXpansion) al 80% de su tamaño normal.
      vertex.label.cex = 0.8,
+     # Aleja la etiqueta del centro del nodo (distancia = 2). Muy útil para que 
+     # el texto no tape el gráfico de pastel.
      vertex.label.dist = 2,
+     # Pinta el texto de un color gris azulado oscuro (código hexadecimal).
      vertex.label.color = "#45455E",
      
-     # --- Aristas ---
+     # --- Aristas (Líneas/Enlaces) ---
+     # Asigna el grosor de la línea calculado antes ('ewidth'), reducido a la mitad (0.5).
      edge.width = ewidth * 0.5,
+     # Reduce el tamaño de la flecha que indica la dirección del flujo.
      edge.arrow.size = 0.4,
-     edge.curved = 0.7,
+     # Curva las líneas un 70%. Esto es fundamental en grafos dirigidos porque 
+     # si hay flujo de A hacia B y de B hacia A, las líneas curvas evitan que se superpongan.
+     edge.curved = 0.1,
+     # Define el color de la línea como gris (0.5, 0.5, 0.5 en RGB).
+     # 'alpha = 0.1' le da un 90% de transparencia. Esto es una excelente práctica 
+     # para mitigar el overplotting: si muchas líneas se cruzan, la transparencia 
+     # permite ver la densidad sin saturar la imagen.
      edge.color = rgb(0.5, 0.5, 0.5, alpha = 0.1)
 )
-
 ```
 
 <p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.1</b> Representación en red de los flujos de datos de la red de llamadas de Austria en calldata. El área de los vértices refleja el volumen total de flujo de entrada o salida de una región de telecomunicaciones, con la proporción relativa de flujos de entrada y salida indicada en blanco y azul, respectivamente. El grosor de los enlaces refleja el volumen de flujo desde el origen hasta el destino.</p>
 
 
 
-
 ```{r fig.width=8, fig.height=8, out.width="75%", fig.align="center"}
+# Carga el paquete 'car' (Companion to Applied Regression), muy utilizado 
+# para diagnósticos de regresión y gráficos estadísticos avanzados.
 library(car)
 
+# Las siguientes cuatro líneas aplican una transformación logarítmica (base 10) 
+# a las variables originales y las guardan como nuevas columnas en el data frame.
+# Esto es vital en datos de flujos espaciales para reducir el sesgo de valores 
+# atípicos y linealizar relaciones multiplicativas (como las ecuaciones de gravedad).
 
-scatterplotMatrix( ~ lFlowCnt + lO.GRP + lD.GRP + lDistRd, 
+# Logaritmo del flujo (variable dependiente).
+calldata$lFlowCnt <- log(calldata$FlowCnt, 10)
+
+# Logaritmo del Gross Regional Product (PIB/Masa) del nodo de Origen.
+calldata$lO.GRP <- log(calldata$O.GRP, 10)
+
+# Logaritmo del Gross Regional Product (PIB/Masa) del nodo de Destino.
+calldata$lD.GRP <- log(calldata$D.GRP, 10)
+
+# Logaritmo de la distancia por carretera entre el origen y el destino.
+calldata$lDistRd <- log(calldata$DistRd, 10)
+
+
+# Llama a la función para crear una matriz de diagramas de dispersión (Scatterplot Matrix).
+# Permite cruzar todas las variables contra todas para ver sus correlaciones bivariadas.
+scatterplotMatrix( 
+  # La fórmula especifica qué variables incluir en la matriz.
+  ~ lFlowCnt + lO.GRP + lD.GRP + lDistRd, 
+  # Indica de qué data frame provienen estas variables.
   data = calldata,
   
   # --- 1. CONFIGURACIÓN DE LOS PUNTOS ---
+  # 'pch = 16' usa círculos sólidos para los puntos del diagrama.
   pch = 16,                 
+  # Pinta los puntos de azul. Al usar 'alpha = 0.4', los hace un 60% transparentes. 
+  # Esto soluciona el "overplotting" (puntos superpuestos): las áreas más oscuras 
+  # indicarán mayor densidad de datos.
   col = rgb(0.2, 0.4, 0.6, alpha = 0.4),
+  # Reduce el tamaño de los puntos al 80% para que el gráfico no se sature.
   cex = 0.8,
   
   # --- 2. LÍNEAS DE TENDENCIA ---
+  # Configura la curva de ajuste no paramétrico (generalmente LOESS - suavizado local).
+  # Ayuda a ver si la relación real tiene curvaturas que una línea recta no captura.
   smooth = list(
-    col.smooth = "firebrick",
-    col.spread = "darkorange",
-    lwd.smooth = 2
+    col.smooth = "yellow",    # Pinta la curva de tendencia de rojo ladrillo.
+    col.spread = "darkorange",   # Pinta las líneas de dispersión (varianza/residuos) de naranja.
+    lwd.smooth = 2               # Le da un grosor de 2 a la curva.
   ),
 
+  # Configura la línea de regresión lineal simple (MCO/OLS) para cada cruce de variables.
   regLine = list(
-    col = "darkgreen",            
-    lwd = 2                       
+    col = "darkgreen",           # Pinta la línea recta de regresión de verde oscuro.
+    lwd = 2                      # Le da un grosor de 2 a la línea recta.
   ),
   
   # --- 3. LA DIAGONAL ---
+  # En lugar de cruzar una variable consigo misma (lo cual daría una línea recta inútil),
+  # la diagonal se usa para mostrar la distribución univariada de cada variable.
   diagonal = list(
-    method = "density",
-    col = "midnightblue",
-    lwd = 2
+    method = "density",          # Dibuja un gráfico de densidad (como un histograma suavizado).
+    col = "midnightblue",        # Pinta la línea de densidad de azul oscuro.
+    lwd = 2                      # Grosor de la línea de densidad.
   ),
   
   # --- 4. TEXTOS Y ETIQUETAS ---
+  # Sobrescribe los nombres de las columnas originales por etiquetas más limpias 
+  # y presentables en español para la diagonal.
   var.labels = c("Log(Flujo)", "Log(PIB Origen)", "Log(PIB Destino)", "Log(Distancia)"), 
+  # Aumenta el tamaño de la fuente de las etiquetas de la diagonal en un 20%.
   cex.labels = 1.2,
+  # Aumenta el tamaño de los números en los ejes X e Y en un 20%.
   cex.axis = 1.2,
+  # Cambia el color de los números de los ejes a un gris oscuro.
   col.axis = "gray30"
 )
-
 ```
-<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.2</b> Datos de llamadas de Austria. Se muestran diagramas de dispersión para el volumen de flujo de llamadas frente a cada uno de los siguientes factores: PIB regional de origen, PIB regional de destino y distancia, a lo largo de la fila superior; y para estas últimas tres variables entre sí, en las filas restantes. Todos los ejes están en escalas log-log. Superpuestas en cada diagrama de dispersión hay dos líneas continuas, con fines descriptivos, que muestran los ajustes basados en una regresión lineal simple (verde) y un suavizador no paramétrico (rojo continuo). Los gráficos de densidad para cada una de las cuatro variables se muestran a lo largo de la diagonal.</p>
-
-```{r}
-formula.s <- FlowCnt ~ lO.GRP + lD.GRP + lDistRd
-formula.g <- FlowCnt ~ Orig + Dest + lDistRd
-```
-
-
-```{r}
-
-```
-
-
+<p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.2</b> Datos de llamadas de Austria. Se muestran diagramas de dispersión para el volumen de flujo de llamadas frente a cada uno de los siguientes factores: PIB regional de origen, PIB regional de destino y distancia, a lo largo de la fila superior; y para estas últimas tres variables entre sí, en las filas restantes. Todos los ejes están en escalas log-log. Superpuestas en cada diagrama de dispersión hay dos líneas continuas, con fines descriptivos, que muestran los ajustes basados en una regresión lineal simple (verde) y un suavizador no paramétrico (amarillo no continuo). Los gráficos de densidad para cada una de las cuatro variables se muestran a lo largo de la diagonal.</p>
 
 
 ### 9.2.2 Inference for Gravity Models
@@ -255,100 +392,168 @@ Claramente, para esta red, el problema de mínimos cuadrados de la ecuación (9.
 
 
 ```{r fig.width=7, fig.height=7, out.width="75%", fig.align="center"}
+# Carga el paquete 'networkTomography', diseñado para el análisis de tráfico 
+# y la inferencia de enrutamiento en redes de computadoras/telecomunicaciones.
 library(networkTomography)
 
+# Carga el conjunto de datos 'bell.labs'. 
+# Aunque en las siguientes líneas no usas directamente los datos de tráfico de 
+# este objeto, cargarlo suele ser el paso previo para luego cruzar la topología 
+# del grafo con las matrices de tráfico de Bell Labs.
 data(bell.labs)
 
+# 'graph_from_literal' permite crear grafos pequeños escribiendo su estructura.
+# Aquí se define que los nodos 'fddi', 'switch', 'local' y 'corp' se conectan 
+# bidireccionalmente (indicado por '++') con el nodo 'Router'. 
+# Esto crea una topología en estrella perfecta de forma muy rápida.
 g.bl <- graph_from_literal(fddi:switch:local:corp ++ Router)
 
+# Crea un vector de colores para los nodos basado en una condición lógica.
+# Si el nombre del vértice (V(g.bl)$name) es "Router", le asigna un color 
+# blanco-azulado claro ("#F0EDFF"). A todos los demás nodos, les asigna 
+# un gris muy claro ("#EBEBEB"). Esto resalta visualmente al nodo central.
 colores_nodos <- ifelse(V(g.bl)$name == "Router", "#F0EDFF", "#EBEBEB")
+
+# Calcula las coordenadas del grafo usando un algoritmo específico para 
+# topologías en estrella ('layout_as_star'). Al definir 'center = "Router"', 
+# garantizas que el enrutador quede exactamente en el medio y los demás nodos orbiten.
 mi_layout_bl <- layout_as_star(g.bl, center = "Router")
 
+# Elimina los márgenes del gráfico (abajo, izquierda, arriba, derecha) 
+# para aprovechar al máximo el espacio de la ventana.
 par(mar=c(0, 0, 0, 0))
 
+# Fija la semilla aleatoria. Aunque el diseño en estrella es determinista 
+# (siempre dibuja lo mismo), poner la semilla es una buena práctica por si 
+# más adelante cambias el algoritmo de layout a uno basado en fuerzas.
 set.seed(42)
+
+# Llama a la función principal para graficar.
 plot(g.bl,
+     # Usa las coordenadas calculadas para la topología en estrella.
      layout = mi_layout_bl,
      
+     # Limita los ejes para que el grafo quede bien centrado sin cortarse.
      xlim = c(-1, 1),
      ylim = c(-1, 1),
      
      # --- Configuración de Nodos ---
-     vertex.size = 29,
-     vertex.color = colores_nodos,
-     vertex.frame.color = "#a8a8a8",
+     vertex.size = 29,                    # Define un tamaño fijo de 29 para todos los nodos.
+     vertex.color = colores_nodos,        # Aplica el vector de colores (Router vs Periferia).
+     vertex.frame.color = "#a8a8a8",      # Pinta el borde de los nodos de un gris medio.
 
-     
      # --- Configuración de Texto ---
-     vertex.label.family = "sans",
-     vertex.label.font = 3,
-     vertex.label.cex = 1,
-     vertex.label.color = "#5C5C5C",
+     vertex.label.family = "sans",        # Usa fuente sin serifas para una lectura limpia.
+     vertex.label.font = 3,               # Aplica estilo cursiva (italic) al texto.
+     vertex.label.cex = 1,                # Tamaño de texto estándar (100%).
+     vertex.label.color = "#5C5C5C",      # Pinta el texto de un gris oscuro.
      
-     # --- Configuración de Enlaces ---
-     edge.width = 1.4,
-     edge.arrow.size = 1.2,
-     edge.curved = 0,
-     edge.color = "#a8a8a8"
+     # --- Configuración de Enlaces (Aristas) ---
+     edge.width = 1.4,                    # Grosor de las líneas de conexión.
+     edge.arrow.size = 1.2,               # Tamaño de las flechas (como usamos ++, habrá flechas en ambos sentidos).
+     edge.curved = 0,                     # Líneas completamente rectas (0 curvatura). 
+                                          # Al ser una estrella, no hay riesgo de cruces de líneas, 
+                                          # así que las líneas rectas dan un aspecto más técnico.
+     edge.color = "#a8a8a8"               # Pinta las líneas del mismo gris que el borde de los nodos.
 )
 ```
 <p style="text-align: justify; font-size: 0.9em; color: #555; padding: 0 10%;"><b>Fig. 9.4</b> Representación esquemática de la pequeña red informática subyacente a los datos en bell.labs.</p>
 
 
 ```{r fig.width=8, fig.height=8, out.width="75%", fig.align="center"}
-# Cargar librerías y datos
+# Carga 'lattice' para gráficos multipanel y 'networkTomography' para los datos.
 library(lattice)
 library(networkTomography)
+
+# Carga el conjunto de datos de la red de Bell Labs.
 data(bell.labs)
 
+# Extrae las matrices matemáticas usadas clásicamente en tomografía de redes:
+# B = Matriz de enrutamiento (Routing matrix). Indica qué caminos usan qué enlaces.
 B <- bell.labs$A
+# Z = Matriz de tráfico origen-destino (OD traffic matrix).
 Z <- bell.labs$X
+# x = Vector de mediciones observadas en los enlaces (Link counts).
 x <- bell.labs$Y
+# Nota: Aunque las extraes aquí, no se usan directamente para los gráficos de abajo, 
+# pero es el paso estándar para preparar modelos de inferencia (x = B * Z).
 
 
+# Define vectores de texto con los nombres exactos de las series de tiempo que 
+# corresponden al tráfico de entrada ("dst" = destination) hacia los nodos.
 traffic.in <- c("dst fddi", "dst switch", "dst local", "dst corp")
+
+# Define los nombres para el tráfico de salida ("src" = source) desde los nodos.
 traffic.out <- c("src fddi", "src switch", "src local", "src corp")
 
+# Extrae la versión en formato 'data.frame' de los datos, que es ideal para graficar.
 my.df <- bell.labs$df
 
 
+# Crea una nueva columna 't' (tiempo continuo).
+# Usa 'lapply' para iterar sobre cada registro de la columna de texto 'time'.
 my.df$t <- unlist(lapply(my.df$time, function(x) {
+  # Extrae los caracteres de la posición 11 a la 12 (las Horas) y los vuelve número.
   hrs <- as.numeric(substring(x, 11, 12))
+  # Extrae los caracteres de la posición 14 a la 15 (los Minutos) y los vuelve número.
   mins <- as.numeric(substring(x, 14, 15))
+  
+  # Convierte la hora a formato decimal. Por ejemplo, 10:30 se convierte en 
+  # 10 + 30/60 = 10.5. Esto facilita que el eje X del gráfico sea continuo.
   t <- hrs + mins/60
   return(t)
 }))
 
+# Separa el data frame original en dos subconjuntos:
+# my.df.in: Solo conserva las filas donde el nombre ('nme') coincida con el vector de entradas.
 my.df.in <- subset(my.df, nme %in% traffic.in)
+# my.df.out: Solo conserva las filas que coincidan con el vector de salidas.
 my.df.out <- subset(my.df, nme %in% traffic.out)
 
 
+# Define un tema personalizado para 'lattice'. Aquí cambia el color del fondo 
+# de las tiras de título (strip) de cada panel a un gris súper claro ("#F5F5F5").
 mi_tema <- list(strip.background = list(col = "#F5F5F5"))
 
-# Gráfico Superior (Entradas)
+# --- Gráfico Superior (Entradas) ---
+# xyplot es la función principal de lattice para gráficos de dispersión/líneas.
+# Fórmula: 'value / 2^10 ~ t | nme'
+# Significa: Grafica el valor (dividiendo por 1024, que es 2^10, para pasar de bytes a Kbytes) 
+# en función del tiempo 't', CONDICIONADO ('|') a la variable 'nme' (nombre del nodo).
+# Esto creará un panel distinto por cada nodo.
 p.in <- xyplot(value / 2^10 ~ t | nme, 
                data = my.df.in, 
-               type = "l", 
-               col.line = "goldenrod",
-               lwd = 2,
-               layout = c(1, 4),
-               xlab = "",
-               ylab = "Kbytes/seg",
-               par.settings = mi_tema)
+               type = "l",               # "l" para que dibuje líneas continuas.
+               col.line = "goldenrod",   # Color de la línea (amarillo dorado oscuro).
+               lwd = 2,                  # Grosor de línea 2.
+               layout = c(1, 4),         # Ordena los paneles en 1 columna y 4 filas.
+               xlab = "",                # Oculta el título del eje X para que no estorbe arriba.
+               ylab = "Kbytes/seg",      # Etiqueta del eje Y.
+               par.settings = mi_tema)   # Aplica el fondo gris a los títulos de panel.
 
-# Gráfico Inferior (Salidas)
+# --- Gráfico Inferior (Salidas) ---
+# Hace exactamente lo mismo que el anterior, pero con el subconjunto de salidas.
 p.out <- xyplot(value / 2^10 ~ t | nme,
                 data = my.df.out,
                 type = "l",
-                col.line = "firebrick",
+                col.line = "firebrick",  # Usa color rojo ladrillo para distinguirlo.
                 lwd = 2,
                 layout = c(1, 4),
-                xlab = "Hora del día",
+                xlab = "Hora del día",   # Aquí sí pone título al eje X porque irá abajo.
                 ylab = "Kbytes/seg",
                 par.settings = mi_tema)
 
 # --- APILAR LOS GRÁFICOS ---
+
+# Imprime el gráfico de entradas 'p.in'.
+# 'position = c(xmin, ymin, xmax, ymax)' define en qué área de la ventana se dibuja.
+# c(0, 0.5, 1, 1) significa que ocupa desde la mitad superior (y=0.5) hasta arriba (y=1).
+# 'more = TRUE' le dice a R: "No borres la ventana, voy a dibujar otra cosa encima".
 print(p.in, position = c(0, 0.5, 1, 1), more = TRUE)
+
+# Imprime el gráfico de salidas 'p.out'.
+# Ocupa desde abajo (y=0) hasta la mitad de la ventana (y=0.5).
+# Como no tiene 'more = TRUE', este es el comando final que cierra la composición.
 print(p.out, position = c(0, 0, 1, 0.5))
 ```
 
@@ -356,9 +561,47 @@ print(p.out, position = c(0, 0, 1, 0.5))
 
 
 ```{r}
+# 'B' es la matriz de enrutamiento (routing matrix). En esta matriz, las filas 
+# representan los enlaces de la red y las columnas representan los posibles 
+# caminos (rutas Origen-Destino). Los valores suelen ser 1 (si el camino pasa 
+# por el enlace) o 0 (si no pasa).
+
+# colSums(B) suma los valores de cada columna. Esto te dice cuántos enlaces 
+# componen cada camino. En una topología de estrella como la de Bell Labs, 
+# la mayoría de los caminos periféricos atraviesan exactamente 2 enlaces 
+# (del nodo de origen al Router, y del Router al nodo de destino).
+
+# Al hacer '2 - colSums(B)', se calcula un "complemento". Crea un nuevo vector 
+# fila donde cada elemento es lo que le falta a la suma de esa columna para llegar a 2.
+
+# rbind() (Row Bind) toma la matriz 'B' original y le pega este nuevo vector 
+# en la parte inferior como una fila adicional. El resultado se guarda en 'B.full'.
+# Al hacer esto, garantizas que si sumaras las columnas de 'B.full', todas darían exactamente 2.
 B.full <- rbind(B, 2 - colSums(B))
 
-write.table(format(B.full), row.names=F, col.names=F, quote=F)
+# write.table() es la función estándar de R para exportar data frames o matrices a 
+# archivos de texto (.txt o .csv). Sin embargo, como aquí NO le estás pasando el 
+# argumento de la ruta (file = "..."), R imprime el resultado directamente 
+# en la consola.
+
+write.table(
+  # format() toma la matriz y estandariza los espacios entre los caracteres. 
+  # Esto asegura que todos los números queden perfectamente alineados en columnas 
+  # visualmente rectas en la consola.
+  format(B.full), 
+  
+  # row.names = F (Falso): Le dice a R que no imprima los nombres ni los números 
+  # de las filas (ej. 1, 2, 3...) en el margen izquierdo.
+  row.names=F, 
+  
+  # col.names = F (Falso): Le dice a R que no imprima los encabezados de las 
+  # columnas (ej. V1, V2, V3...) en la parte superior.
+  col.names=F, 
+  
+  # quote = F (Falso): Evita que los números se impriman envueltos en comillas.
+  # En lugar de verse como "0" "1" "0", se verán como 0 1 0.
+  quote=F
+)
 ```
 
 
@@ -366,6 +609,33 @@ write.table(format(B.full), row.names=F, col.names=F, quote=F)
 
 
 ### 9.3.2 The Tomogravity Method
+
+<div style="text-align: justify; line-height: 2; font-family: 'Helvetica'; font-size: 14px;">
+
+Un enfoque estándar para abordar problemas mal planteados como el de (9.13) es aumentar la función objetivo con algún tipo de penalización (también conocida como regularización), a fin de restringir la colección de soluciones posibles de una manera útil. El método de tomogravedad sigue este espíritu para el problema específico de la estimación de matrices de tráfico.  Introducido por Zhang, Roughan, Lund y Donoho [151], la parte "tomo" del nombre se refiere al hecho de que el problema de estimación de matrices de tráfico se considera una forma de 'tomografía de redes' (encontramos otro ejemplo en el Cap. 7.4), un término acuñado por Vardi [142]. La parte "gravedad" del nombre, a su vez, se refiere al hecho de que se utiliza un modelo de gravedad simple para restringir las soluciones producidas por este método.  
+
+En el método de tomogravedad, reemplazamos el criterio de mínimos cuadrados en (9.13) por un criterio de mínimos cuadrados penalizado de la forma:
+
+$(x-B\propto)^{T}(x-B\propto)+\lambda D(\infty||\alpha^{(0)})$, (9.14)   
+
+donde nuevamente el objetivo es minimizar la función objetivo global. Aquí, la penalización:
+
+$D(\alpha||\alpha^{(0)})=\sum_{ij}\frac{\alpha_{ij}}{\alpha_{++}}log\frac{\alpha_{ij}}{\alpha_{ij}^{(0)}}$ (9.15)   es la 'distancia' de entropía relativa entre una solución candidata y algún vector preespecificado $\infty^{(0)}$. Esta cantidad también se conoce como la divergencia de Kullback-Liebler y resume qué tan similares son entre sí las dos 'distribuciones' $\{\infty_{ij}/\infty_{++}\}$ y $\{\infty_{ij}^{(0)}/\infty_{++}^{(0)}\}$, donde $\alpha_{++}$ y $\infty_{++}^{(0)}$ son la suma de los elementos en los respectivos vectores. Siempre es no negativa y será igual a cero si y solo si la solución candidata es igual a $\infty^{(0)}$.  La noción de un modelo de gravedad entra en el método de tomogravedad al especificar que $\infty^{(0)}$ tenga una cierta forma multiplicativa que recuerda a un modelo de gravedad simple. Específicamente, dejamos que:  
+
+$\infty_{ij}^{(0)}=Z_{i+}^{(0)}\times Z_{+j}^{(0)}$ (9.16)   
+
+sea el producto del flujo neto de salida y entrada en los vértices i y j, respectivamente. Además, se aplica una restricción adicional en la que $\alpha_{++}$ es el tráfico total en la red $Z_{++}^{(0)}$. De manera importante, todos estos valores pueden obtenerse mediante la suma adecuada de los elementos en el vector x de conteos de enlaces observados.  
+
+También es necesario para especificar completamente el criterio en (9.14) el valor $\lambda$. Este valor actúa como un parámetro de suavizado, donde los valores más grandes fomentan soluciones que se acercan más al vector preespecificado $\infty^{(0)}$. Se ha reportado que un valor de $\lambda=(0.01)^{2}$ funciona bien en la práctica.  
+
+El problema de mínimos cuadrados regularizados en (9.14) se puede resolver mediante métodos de optimización convexa. Cabe señalar que la estimación de los volúmenes de flujo esperados no necesariamente satisface la restricción $x=Bz$. Si se desea hacer cumplir esta restricción (es decir, si los volúmenes de enlace medidos x no tienen error), entonces se puede utilizar el procedimiento de ajuste proporcional iterativo (IPFP). El IPFP, usualmente atribuido a Deming y Stephan [44] en la literatura estadística, es una herramienta estándar en el análisis estadístico de tablas de contingencia, donde se utiliza para forzar que los elementos de una tabla coincidan con los marginales. Consulte [23, Sec 2.4] para una descripción de su uso en el contexto de la estimación de matrices de tráfico.  
+
+El paquete de R networkTomography implementa el método de tomogravedad, con ajuste IPFP, en la función tomogravity. Se ilustra aplicándolo a los datos de Bell Labs.  
+
+Los resultados (mostrados en la Fig. 9.6 del texto original) indican que el método de tomogravedad parece funcionar bastante bien para capturar los volúmenes de flujo en toda la red, a pesar de la naturaleza altamente variable de estas series de tiempo y del rango dinámico un tanto sustancial (es decir, casi un orden de magnitud de un megabyte en el eje y).
+
+</div>
+
 
 ## 9.4 Additional Reading
 
